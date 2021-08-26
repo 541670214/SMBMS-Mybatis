@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huihui.dao.user.UserMapper">
+    <select id="getId" resultType="user">
+    select * from smbms.smbms_user where id=#{id}
+  </select>
+
+    <!--用户登录判断-->
+    <select id="getUser" resultType="user">
+        select * from smbms.smbms_user where userCode=#{user} and
+        userPassword=#{pwd}
+    </select>
+
+    <!--修改密码-->
+    <update id="setUpdatePwd">
+      update smbms.smbms_user set userPassword=#{pwd} where id=#{id}
+    </update>
+
+    <!--查询用户总数(根据用户名或者角色查询)-->
+    <select id="getUserCount" resultType="int">
+        select count(1) as count from smbms.smbms_user u ,smbms.smbms_role r
+        <where>
+                u.userRole  = r.id
+            <if test="username!=null">
+                and u.userName like concat('%',#{username},'%')
+            </if>
+            <if test="userRole>0">
+                and u.userRole = #{userRole}
+            </if>
+        </where>
+
+    </select>
+
+    <!--获取用户列表需要分页-->
+    <select id="getUserList" resultMap="user_map">
+        select u.* ,r.roleName  from smbms.smbms_user u,smbms.smbms_role r
+        <where>
+            u.userRole  = r.id
+            <if test="username!=null">
+                and u.userName like concat('%',#{username},'%')
+            </if>
+            <if test="userRole>0">
+                and u.userRole = #{userRole}
+            </if>
+            order by creationDate DESC limit #{currentPageNo},#{pageSize}
+        </where>
+    </select>
+
+    <!--获取用户列表-->
+    <resultMap id="user_map" type="User">
+       <result property="userRoleName" column="roleName"></result>
+    </resultMap>
+
+    <!--根据id查询列表-->
+    <select id="getUserId" resultType="user">
+        select u.* ,r.roleName as userRoleName from smbms.smbms_user
+        u,smbms.smbms_role r
+        where u.userRole  = r.id and u.id=#{id}
+    </select>
+
+    <!--根据id修改用户信息-->
+    <update id="setUpdateUser" >
+      update smbms.smbms_user
+      <set>
+          <if test="userName!=null">
+              userName=#{userName},
+          </if>
+          <if test="gender!=null">
+              gender=#{gender},
+          </if>
+          <if test="birthday!=null">
+              birthday=#{birthday},
+          </if>
+          <if test="phone!=null">
+              phone=#{phone},
+          </if>
+          <if test="address!=null">
+              address=#{address},
+          </if>
+          <if test="userRole!=null">
+              userRole=#{userRole},
+          </if>
+          <if test="modifyBy!=null">
+              modifyBy=#{modifyBy},
+          </if>
+          <if test="modifyDate!=null">
+              modifyDate=#{modifyDate},
+          </if>
+      </set>
+        where id=#{id}
+    </update>
+
+    <!--根据id删除用户-->
+    <delete id="setDeleteUser">
+        delete from smbms.smbms_user where id=#{id}
+    </delete>
+
+    <!--添加用户-->
+    <insert id="addUser" parameterType="User">
+        insert into smbms.smbms_user (userCode, userName, userPassword, gender, birthday, phone, address, userRole, createdBy, creationDate)
+        values (#{userCode}, #{userName}, #{userPassword}, #{gender},
+        #{birthday}, #{phone}, #{address}, #{userRole}, #{createdBy}, #{creationDate})
+    </insert>
+
+    <!--通过UserCode判断账号是否存在-->
+    <select id="getUserCode" resultType="int" >
+        select count(1) from smbms.smbms_user where userCode=#{userCode}
+    </select>
+</mapper>
